@@ -24,5 +24,16 @@
   "homepage": "https://github.com/rot1024/scrapist#readme",
   "engines": {
     "node": ">=4"
+  },
+  "devDependencies": {
+    "eslint": "^2.12.0",
+    "eslint-plugin-node": "^1.5.0"
+  },
+  "dependencies": {
+    "cheerio-httpcli": "^0.6.8",
+    "co": "^4.6.0",
+    "ramda": "^0.21.0",
+    "throat": "^3.0.0",
+    "yargs": "^4.7.1"
   }
 }
