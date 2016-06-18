@@ -64,10 +64,11 @@ const scrapist = new Scrapist({
 });
 ```
 
-スクレイピングを開始するには、 `scrape` メソッドをコールします。全ページのスクレイピングが完了すると、全ページのスクレイピング結果がまとめて Promise に渡されます。
+スクレイピングを開始するには、 `scrape` メソッドをコールします。
+全ページのスクレイピングが完了すると、全ページのスクレイピング結果がまとめて Promise に渡されます。
 
 ```js
-scrapist.scrape().then(results => {
+scrapist.scrape().then(result => {
   // ...
 });
 ```
@@ -76,7 +77,14 @@ scrapist.scrape().then(results => {
 
 npm で `-g` をつけてインストールすると、ターミナルで `scrapist` コマンドからスクレイピングが利用可能になります。
 
-`--scheme` や `--config` で、スキーマや設定を記述したjsファイルを読み込むことができます。詳しくは `--help` でヘルプをご覧ください。
+- `--scheme`: [必須] `scheme` のファイルパス。
+- `--config`: `config` のファイルパス。
+- `--param`: `scrape` メソッドの `param` に相当する値を指定できます。
+- `--output` : JSON形式の結果の出力先ファイルパス。省略すると結果を標準出力へ流します。
+
+※ `--scheme` と `--config` では、 `module.exports = { ... };` のように記述されたjsファイルを指定できます。
+
+例:
 
 ```sh
 scrapist --scheme google.js --output result.json
@@ -84,9 +92,16 @@ scrapist --scheme google.js --output result.json
 
 ## API
 
+以下のようにインポートできます。
+
+```js
+var Scrapist = require("scrapist").Scrapist;
+import Scrapist from "scrapist";
+```
+
 ### new Scrapist(scheme[, config])
 
-スクレイピング方法の記述や設定を保持するクラス。`scheme` と `config` の詳細は下記を参照して下さい。
+ページ構造の記述や設定を保持するクラス。`scheme` と `config` の詳細は下記を参照して下さい。
 
 #### scrape([param], [config])
 
@@ -94,16 +109,18 @@ scrapist --scheme google.js --output result.json
 `config` を指定すると、`Scrapist` のコンストラクタで指定した `config` を上書きすることができます
 （`scrapist` の `config` にマージされます）。
 
+---
+
 ### scheme
 
 スクレイピングしたいWebサイトの構造に関する記述です。以下のキーを持つオブジェクトです。
 
-#### rootUrl [必須]
+#### rootUrl : string|function(any) => string [必須]
 
-一番最初に取得するページのURL。`string`の他に、`function`を設定することもでき、
-`scrape` メソッドに渡された引数から、最初に取得するURLを返す関数として、スクレイピング前にコールされます。
+一番最初に取得するページのURLを `string` で指定します。
+`function` を設定することもでき、`scrape` メソッドに渡された引数から、最初に取得するURLを返す関数として、スクレイピング前にコールされます。
 
-#### pages [必須]
+#### pages : array<object> [必須]
 
 以下のオブジェクトからなる、ページのスクレイピング方法を記述する配列。
 
@@ -111,7 +128,7 @@ scrapist --scheme google.js --output result.json
 すなわち、一番最初に取得するページまたはその兄弟ページに対しては、1番目のオブジェクト内の関数等が適用されます。
 その子ページに対しては2番目が、孫ページには3番目が…、という具合に適用されます。
 
-```
+```js
 {
   resToData(result) {
     // result は { err, $, res, body } です（cheerio-httpcli の fetch の結果をそのまま渡してるだけ）
@@ -128,16 +145,16 @@ scrapist --scheme google.js --output result.json
 
 いずれも省略可能です。
 
-- **resToData**: 取得結果から取得したいデータを返す関数
-- **resToChildren**: そのページから取得すべき子ページのURLの配列を返す関数
-- **resToSiblings**: そのページから更に取得すべき兄弟ページのURLの配列を返す関数
-- **siblingsIndex**: どの兄弟ページまで resToSiblings で兄弟ページが増える可能性があるか、インデックスで指定
+- **resToData**: 取得結果から取得したいデータを返す関数。
+- **resToChildren**: そのページから取得すべき子ページのURLの配列を返す関数。
+- **resToSiblings**: そのページから更に取得すべき兄弟ページのURLの配列を返す関数。
+- **siblingsIndex**: どの兄弟ページまで `resToSiblings` を呼び出すか、兄弟ページのインデックスで指定します。適切に指定されていないと、兄弟ページを取得する際に同時リクエストが効きません。`-1` が指定されているか `resToSiblings` が省略されている場合は無視されます。
 
-#### after
+#### after : function
 
 全スクレイピング完了後に呼ばれるコールバック。以下の様な構造のデータが引数に渡されます。
 これを基に、最終的に渡したいオブジェクトに加工して return することができます。
-省略された場合、加工前の結果がそのまま渡されます。
+省略された場合、以下の様な構造の結果がそのまま渡されます。
 
 ```js
 [
@@ -159,11 +176,13 @@ scrapist --scheme google.js --output result.json
 ]
 ```
 
+---
+
 ### config
 
 以下のキーを持つオブジェクトです。
 
-### concurrency : number
+#### concurrency : number
 
 サーバーへのリクエストを同時にいくつまで並列して実行可能か指定します。デフォルト: `1`
 
@@ -179,33 +198,33 @@ scrapist --scheme google.js --output result.json
 
 取得エラーが発生した場合の、再試行回数。デフォルト: `1`
 
-### trialInterval : number|function(number) => number
+#### trialInterval : number|function(number) => number
 
 取得エラーが発生した場合の、次の再試行まで待つミリ秒数。デフォルト: `1000`
 
 関数を指定することもでき、その場合は、再試行回数を引数に、再試行までのミリ秒数を返す関数となります。
 
-#### beforeFetch(url, page, siblings)
+#### beforeFetch : function(url, page, siblings)
 
 1つのページを取得する直前に呼ばれるコールバック。
 
-#### onFetch(data, url, page, siblings)
+#### onFetch : function(data, url, page, siblings)
 
 1つのページを取得し、 `resToData` に通されたあとに呼ばれるコールバック。
 結果をまとめてではなく随時保存したり、進捗を表示するなどの用途にお使いいただけます。
 
-#### onError(err) => bool
+#### onError : function(err) => bool
 
 取得中にエラーが発生した場合に呼ばれます。
 `true` を返すと、設定内容に従ってスクレイピングの再試行を試みます。
 それ以外の場合はそのまま `err` を throw します。
 
-cheerio-httpcliを使う場合、デフォルトで設定されていますので、通常設定の必要はありません。
+cheerio-httpcli を使う場合、デフォルトで設定されていますので、通常設定の必要はありません。
 
-#### fetch(url) => Promise
+#### fetch : function(url) => Promise
 
 デフォルトではサーバーへのリクエストおよびその結果を返すモジュールとして cheerio-httpcli を使用しますが、
-他のモジュールや自作の関数を使いたい場合など、上書きしたい場合に指定して下さい。
+他のモジュールや自作の関数を使いたい場合など、通常の動作を上書きしたい場合に指定して下さい。
 この場合、再試行機能が有効になるよう `onError` も同時に指定して下さい。
 
 Promise　の `resolve` に渡されたものがそのまま `resToData` `resToChildren` `resToSiblings` に渡される引数となります。
