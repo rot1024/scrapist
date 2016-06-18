@@ -145,10 +145,10 @@ import Scrapist from "scrapist";
 
 いずれも省略可能です。
 
-- **resToData**: 取得結果から取得したいデータを返す関数。
-- **resToChildren**: そのページから取得すべき子ページのURLの配列を返す関数。
-- **resToSiblings**: そのページから更に取得すべき兄弟ページのURLの配列を返す関数。
-- **siblingsIndex**: どの兄弟ページまで `resToSiblings` を呼び出すか、兄弟ページのインデックスで指定します。適切に指定されていないと、兄弟ページを取得する際に同時リクエストが効きません。`-1` が指定されているか `resToSiblings` が省略されている場合は無視されます。
+- **resToData** : 取得結果から取得したいデータを返す関数。
+- **resToChildren** : そのページから取得すべき子ページのURLの配列を返す関数。
+- **resToSiblings** : そのページから更に取得すべき兄弟ページのURLの配列を返す関数。
+- **siblingsIndex** : どの兄弟ページまで `resToSiblings` を呼び出すか、兄弟ページのインデックスで指定します。適切に指定されていないと、兄弟ページを取得する際に同時リクエストが効きません。`-1` が指定されているか `resToSiblings` が省略されている場合は無視されます。
 
 #### after : function
 
