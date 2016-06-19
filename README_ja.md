@@ -9,7 +9,8 @@ cheerio-httpcli をベースとした、Node.js の Web スクレイピングモ
 - スクレイピングに失敗した場合の、再試行回数や再試行までの時間を設定可能
 - 好きなスクレイピングモジュールでも利用可能
 
-※ Node.js v4 以上のみ対応
+※ Node.js v4 以上のみ対応<br>
+※ **試験的に作成しているため、API仕様がまだ安定していません。ご利用の際はご注意下さい。**
 
 ## 使い方
 
@@ -130,14 +131,17 @@ import Scrapist from "scrapist";
 
 ```js
 {
+  resToData(url, index, urls, parentData) {
+    //
+  },
   resToData(result) {
     // result は { err, $, res, body } です（cheerio-httpcli の fetch の結果をそのまま渡してるだけ）
   },
   resToChildren(result) {
-
+    // result は resToData に同じ
   },
   resToSiblings(result) {
-
+    // result は resToData に同じ
   },
   siblingsIndex: 1
 }
@@ -145,10 +149,11 @@ import Scrapist from "scrapist";
 
 いずれも省略可能です。
 
-**resToData** : 取得結果から取得したいデータを返す関数。<br>
-**resToChildren** : そのページから取得すべき子ページのURLの配列を返す関数。<br>
-**resToSiblings** : そのページから更に取得すべき兄弟ページのURLの配列を返す関数。<br>
-**siblingsIndex** : どの兄弟ページまで `resToSiblings` を呼び出すか、兄弟ページのインデックスで指定します。適切に指定されていないと、兄弟ページを取得する際に同時リクエストが効きません。`-1` が指定されているか `resToSiblings` が省略されている場合は無視されます。
+- **urlToChildren** : スクレイピングの必要なしに子ページのURLがわかる場合は、この関数で子ページのURLの配列を返すことでサーバーへのリクエストを省略できます。この関数が定義されている場合、resToData以下は無視されます。<br>
+- **resToData** : 取得結果から取得したいデータを返す関数。<br>
+- **resToChildren** : そのページから取得すべき子ページのURLの配列を返す関数。<br>
+- **resToSiblings** : そのページから更に取得すべき兄弟ページのURLの配列を返す関数。<br>
+- **siblingsIndex** : どの兄弟ページまで `resToSiblings` を呼び出すか、兄弟ページのインデックスで指定します。適切に指定されていないと、兄弟ページを取得する際に同時リクエストが効きません。`-1` が指定されているか `resToSiblings` が省略されている場合は無視されます。
 
 #### after : function
 
@@ -159,18 +164,16 @@ import Scrapist from "scrapist";
 ```js
 [
   {
-    page: {
-      data: { /* resToDataの結果 */ }
-    },
+    data: { /* resToDataの結果 */ }
+    url: "https://github.com",
     children: [
       {
-        page: { data: { /* resToDataの結果 */ } },
-        children: [ /* ... */ ],
-        siblings: [ /* resToSiblingsの結果 */ ]
+        data: { /* resToDataの結果 */ },
+        url: "https://github.com/rot1024"
+        children: [ /* ... */ ]
       },
       // ...
-    ],
-    siblings: [ /* resToSiblingsの結果 */ ]
+    ]
   },
   // ...
 ]
@@ -224,7 +227,7 @@ cheerio-httpcli を使う場合、デフォルトで設定されていますの�
 #### fetch : function(url) => Promise
 
 デフォルトではサーバーへのリクエストおよびその結果を返すモジュールとして cheerio-httpcli を使用しますが、
-他のモジュールや自作の関数を使いたい場合など、通常の動作を上書きしたい場合に指定して下さい。
+他のモジュールや自作の関数を使いたい場合など、通常の動作を上書きしたい場合に指定して下さい。
 この場合、再試行機能が有効になるよう `onError` も同時に指定して下さい。
 
 Promise　の `resolve` に渡されたものがそのまま `resToData` `resToChildren` `resToSiblings` に渡される引数となります。
