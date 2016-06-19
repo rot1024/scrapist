@@ -165,6 +165,10 @@ import Scrapist from "scrapist";
 全スクレイピング完了後に呼ばれるコールバック。
 `scrpae` メソッドの Promise に渡される、スクレイピング結果のオブジェクトを加工して return することができます。
 
+#### defaultParam : any
+
+デフォルトのパラメータ。`defaultParam` も `param` もobject型の場合は、`defaultParam` に `param` がマージされた結果がスクレイピングのパラメータとなります。それ以外は、`param` が未指定のときのみ、`defaultParam` が使われます。
+
 ---
 
 ### config
