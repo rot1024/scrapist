@@ -1,5 +1,7 @@
 # Scrapist
 
+[![npm version](https://badge.fury.io/js/scrapist.svg)](https://badge.fury.io/js/scrapist)
+
 cheerio-httpcli をベースとした、Node.js の Web スクレイピングモジュール
 
 単体ページだけでなく、その子ページや兄弟ページなど、複数ページに渡るスクレイピングを、簡潔な記述で行うことができます。
