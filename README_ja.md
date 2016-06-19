@@ -104,11 +104,33 @@ import Scrapist from "scrapist";
 
 ページ構造の記述や設定を保持するクラス。`scheme` と `config` の詳細は下記を参照して下さい。
 
-#### scrape([param], [config])
+#### scrape([param], [config]) => Promise&lt;object, error&gt;
 
 スクレイピングを実行します。`scheme` によっては `param` の指定が必要です。
 `config` を指定すると、`Scrapist` のコンストラクタで指定した `config` を上書きすることができます
 （`scrapist` の `config` にマージされます）。
+
+スクレイピングが完了すると、Promise の `resolve` に以下の様なデータが渡されます（`scheme` の `after` で加工される場合を除く）。
+
+```js
+[
+  {
+    data: { /* resToDataの結果 */ }
+    url: "https://github.com",
+    children: [
+      {
+        data: { /* resToDataの結果 */ },
+        url: "https://github.com/rot1024"
+        children:
+          // ...
+        ]
+      },
+      // ...
+    ]
+  },
+  // ...
+]
+```
 
 ---
 
@@ -121,7 +143,7 @@ import Scrapist from "scrapist";
 一番最初に取得するページのURLを `string` で指定します。
 `function` を設定することもでき、`scrape` メソッドに渡された引数から、最初に取得するURLを返す関数として、スクレイピング前にコールされます。
 
-#### pages : array<object> [必須]
+#### pages : array&lt;object&gt; [必須]
 
 以下のオブジェクトからなる、ページのスクレイピング方法を記述する配列。
 
@@ -129,55 +151,19 @@ import Scrapist from "scrapist";
 すなわち、一番最初に取得するページまたはその兄弟ページに対しては、1番目のオブジェクト内の関数等が適用されます。
 その子ページに対しては2番目が、孫ページには3番目が…、という具合に適用されます。
 
-```js
-{
-  resToData(url, index, urls, parentData) {
-    //
-  },
-  resToData(result) {
-    // result は { err, $, res, body } です（cheerio-httpcli の fetch の結果をそのまま渡してるだけ）
-  },
-  resToChildren(result) {
-    // result は resToData に同じ
-  },
-  resToSiblings(result) {
-    // result は resToData に同じ
-  },
-  siblingsIndex: 1
-}
-```
+以下はいずれも省略可能です。
 
-いずれも省略可能です。
+- **toData** : (context) => any<br>スクレイピングの必要なしにページのデータを設定したい場合は、この関数でデータを返すことでサーバーへのリクエストを省略できます。この関数が定義されている場合、resToData以下は無視されます。
+- **toChildren** : (data, context) => array&lt;string&gt;<br>スクレイピングの必要なしに子ページのURLがわかる場合は、この関数で子ページのURLの配列を返すことでサーバーへのリクエストを省略できます。この関数が定義されている場合、resToData以下は無視されます。`data` は `toData` で返された値です。
+- **resToData** : (result, context) => any<br>取得結果から取得したいデータを返す関数。
+- **resToChildren** : (result, data, context) => array&lt;string&gt;<br>そのページから取得すべき子ページのURLの配列を返す関数。`data` は `resToData` で返された値です。
+- **resToSiblings** : (result, data, context) => array&lt;string&gt;<br>そのページから更に取得すべき兄弟ページのURLの配列を返す関数。`data` は `resToData` で返された値です。
+- **siblingsIndex** : number<br>どの兄弟ページまで `resToSiblings` を呼び出すか、兄弟ページのインデックスで指定します。適切に指定されていないと、兄弟ページを取得する際に同時リクエストが効きません。`-1` が指定されているか `resToSiblings` が省略されている場合は無視されます。
 
-- **urlToChildren** : スクレイピングの必要なしに子ページのURLがわかる場合は、この関数で子ページのURLの配列を返すことでサーバーへのリクエストを省略できます。この関数が定義されている場合、resToData以下は無視されます。<br>
-- **resToData** : 取得結果から取得したいデータを返す関数。<br>
-- **resToChildren** : そのページから取得すべき子ページのURLの配列を返す関数。<br>
-- **resToSiblings** : そのページから更に取得すべき兄弟ページのURLの配列を返す関数。<br>
-- **siblingsIndex** : どの兄弟ページまで `resToSiblings` を呼び出すか、兄弟ページのインデックスで指定します。適切に指定されていないと、兄弟ページを取得する際に同時リクエストが効きません。`-1` が指定されているか `resToSiblings` が省略されている場合は無視されます。
+#### after : function(object) => any
 
-#### after : function
-
-全スクレイピング完了後に呼ばれるコールバック。以下の様な構造のデータが引数に渡されます。
-これを基に、最終的に渡したいオブジェクトに加工して return することができます。
-省略された場合、以下の様な構造の結果がそのまま渡されます。
-
-```js
-[
-  {
-    data: { /* resToDataの結果 */ }
-    url: "https://github.com",
-    children: [
-      {
-        data: { /* resToDataの結果 */ },
-        url: "https://github.com/rot1024"
-        children: [ /* ... */ ]
-      },
-      // ...
-    ]
-  },
-  // ...
-]
-```
+全スクレイピング完了後に呼ばれるコールバック。
+`scrpae` メソッドの Promise に渡される、スクレイピング結果のオブジェクトを加工して return することができます。
 
 ---
 
@@ -207,16 +193,20 @@ import Scrapist from "scrapist";
 
 関数を指定することもでき、その場合は、再試行回数を引数に、再試行までのミリ秒数を返す関数となります。
 
-#### beforeFetch : function(url, page, siblings)
+#### beforeFetch : function(context)
 
 1つのページを取得する直前に呼ばれるコールバック。
 
-#### onFetch : function(data, url, page, siblings)
+#### onData : function(data, context, children, siblings)
 
-1つのページを取得し、 `resToData` に通されたあとに呼ばれるコールバック。
+1つのページを取得し、 `resToData` 等に通されたあとに呼ばれるコールバック。
 結果をまとめてではなく随時保存したり、進捗を表示するなどの用途にお使いいただけます。
 
-#### onError : function(err) => bool
+- data: `resToData` の結果
+- children: `resToChildren` の結果
+- siblings: `resToSiblings` の結果
+
+#### onError : function(err, context) => bool
 
 取得中にエラーが発生した場合に呼ばれます。
 `true` を返すと、設定内容に従ってスクレイピングの再試行を試みます。
@@ -224,7 +214,7 @@ import Scrapist from "scrapist";
 
 cheerio-httpcli を使う場合、デフォルトで設定されていますので、通常設定の必要はありません。
 
-#### fetch : function(url) => Promise
+#### fetch : function(context) => Promise
 
 デフォルトではサーバーへのリクエストおよびその結果を返すモジュールとして cheerio-httpcli を使用しますが、
 他のモジュールや自作の関数を使いたい場合など、通常の動作を上書きしたい場合に指定して下さい。
@@ -232,3 +222,46 @@ cheerio-httpcli を使う場合、デフォルトで設定されていますの�
 
 Promise　の `resolve` に渡されたものがそのまま `resToData` `resToChildren` `resToSiblings` に渡される引数となります。
 また、Promise の `reject` に渡されたものがそのまま `config` の `onError` に渡される引数となります。
+
+---
+
+### context
+
+以下のキーを持つオブジェクトです。
+
+#### url : string
+
+取得しようとしている、または取得したページのURL
+
+#### index : number
+
+兄弟ページの中で何番目のページであるかを示すインデックス
+
+#### siblings : array&lt;string&gt;
+
+現在の階層の全兄弟ページのURL
+
+#### page : object
+
+`scheme` の `pages` で定義された、現在の階層のページのオブジェクト
+
+#### depth : number
+
+ページ階層の深さ。一番最初に取得するページの深さは `0` です。
+
+#### parentData : object
+
+親ページの `resToData` が返したスクレイピング結果
+
+#### param : any
+
+`scrape` メソッドに渡された `param`
+
+#### fetch : bool
+
+サーバーへリクエストを送信しようとしている、またはしたか。
+`toData` や `toChildren` で処理された場合は `false` になります。
+
+#### trial : number
+
+ページ取得に失敗した場合の再試行が何回目であるか。初めて取得する時は `0` です。
