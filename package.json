@@ -1,6 +1,6 @@
 {
   "name": "scrapist",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Node.js web scraping library based on cheerio-httpcli",
   "main": "index.js",
   "bin": "bin/index.js",
