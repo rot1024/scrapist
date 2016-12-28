@@ -32,7 +32,7 @@
   "dependencies": {
     "cheerio-httpcli": "^0.6.8",
     "co": "^4.6.0",
-    "ramda": "^0.22.1",
+    "ramda": "^0.23.0",
     "throat": "^3.0.0",
     "yargs": "^6.3.0"
   }
