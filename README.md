@@ -2,14 +2,14 @@
 
 [![npm version](https://badge.fury.io/js/scrapist.svg)](https://badge.fury.io/js/scrapist)
 
-cheerio-httpcli をベースとした、Node.js の Web スクレイピングモジュール
+Node.js の Web スクレイピングモジュール
 
 単体ページだけでなく、その子ページや兄弟ページなど、複数ページに渡るスクレイピングを、簡潔な記述で行うことができます。
 
 - 簡潔な記述で、木構造の複数ページをまとめてスクレイピング
 - サーバーの負担を考慮して、同時リクエスト数やリクエスト間の時間を設定可能
 - スクレイピングに失敗した場合の、再試行回数や再試行までの時間を設定可能
-- 好きなスクレイピングモジュールでも利用可能
+- 好きなスクレイピングモジュールが使用可能
 
 ※ Node.js v4 以上のみ対応<br>
 ※ **試験的に作成しているため、API仕様がまだ安定していません。ご利用の際はご注意下さい。**
@@ -18,7 +18,7 @@ cheerio-httpcli をベースとした、Node.js の Web スクレイピングモ
 
 ### インストール
 
-cheerio-httpcli を使いたい場合は別途インストールして下さい。
+cheerio-httpcli を使いたい場合は、別途インストールして下さい。
 
 ```sh
 npm install scrapist cheerio-httpcli --save
@@ -30,13 +30,9 @@ npm install scrapist cheerio-httpcli --save
 スクレイピングしたいWebサイトに合わせて、スクレイピング方法を以下のように記述します。
 
 ```js
-const Scrapist = require("scrapist").Scrapist;
-// import { Scrapist } from "scrapist"; 
-
-// cheerio-httpcli を使用する場合、以下のように設定してください。
-const client = require("cheerio-httpcli");
-Scrapist.defaultConfig.fetch = context => client.fetch(context.url);
-Scrapist.defaultConfig.onError = err => err.hasOwnProperty("url");
+// cheerio-httpcli を使用する場合
+const Scrapist = require("scrapist/cheerio-httpcli").Scrapist;
+// import { Scrapist } from "scrapist/cheerio-httpcli";
 
 const scrapist = new Scrapist({
 
@@ -227,12 +223,14 @@ import Scrapist from "scrapist";
 `true` を返すと、設定内容に従ってスクレイピングの再試行を試みます。
 それ以外の場合はそのまま `err` を throw します。
 
-cheerio-httpcli を使う場合、デフォルトで設定されていますので、通常設定の必要はありません。
+デフォルトでは、エラー内容にかかわらず、無条件にスクレイピングの再試行を試みます。
 
 #### fetch : function(context) => Promise
 
 Webページを取得するモジュールを独自に使いたい場合に指定して下さい。
 この場合、再試行機能が有効になるよう `onError` も同時に指定して下さい。
+
+`require("scrapist")` で直接インポートした場合、デフォルトでは何も設定されていませんので、そのままスクレイピングしようとすると例外が発生します。
 
 Promise　の `resolve` に渡されたものがそのまま `resToData` `resToChildren` `resToSiblings` に渡される引数となります。
 また、Promise の `reject` に渡されたものがそのまま `config` の `onError` に渡される引数となります。
