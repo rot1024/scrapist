@@ -18,8 +18,11 @@ cheerio-httpcli をベースとした、Node.js の Web スクレイピングモ
 
 ### インストール
 
+cheerio-httpcli を使いたい場合は別途インストールして下さい。
+
 ```sh
-npm install scrapist --save
+npm install scrapist cheerio-httpcli --save
+# yarn add scrapist cheerio-httpcli
 ```
 
 ### 使い方
@@ -28,6 +31,12 @@ npm install scrapist --save
 
 ```js
 const Scrapist = require("scrapist").Scrapist;
+// import { Scrapist } from "scrapist"; 
+
+// cheerio-httpcli を使用する場合、以下のように設定してください。
+const client = require("cheerio-httpcli");
+Scrapist.defaultConfig.fetch = context => client.fetch(context.url);
+Scrapist.defaultConfig.onError = err => err.hasOwnProperty("url");
 
 const scrapist = new Scrapist({
 
@@ -222,8 +231,7 @@ cheerio-httpcli を使う場合、デフォルトで設定されていますの�
 
 #### fetch : function(context) => Promise
 
-デフォルトではサーバーへのリクエストおよびその結果を返すモジュールとして cheerio-httpcli を使用しますが、
-他のモジュールや自作の関数を使いたい場合など、通常の動作を上書きしたい場合に指定して下さい。
+Webページを取得するモジュールを独自に使いたい場合に指定して下さい。
 この場合、再試行機能が有効になるよう `onError` も同時に指定して下さい。
 
 Promise　の `resolve` に渡されたものがそのまま `resToData` `resToChildren` `resToSiblings` に渡される引数となります。
