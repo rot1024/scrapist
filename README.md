@@ -277,3 +277,12 @@ Promise　の `resolve` に渡されたものがそのまま `resToData` `resToC
 #### trial : number
 
 ページ取得に失敗した場合の再試行が何回目であるか。初めて取得する時は `0` です。
+
+## TODO
+
+- english document
+- node stream support
+- add test code
+- add example
+
+PR is welcome!
