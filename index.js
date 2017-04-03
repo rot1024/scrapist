@@ -1,3 +1,3 @@
 "use strict";
 
-module.exports = require("./cheerio-httpcli");
+module.exports = require("./lib");
