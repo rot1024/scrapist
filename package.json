@@ -6,15 +6,14 @@
   "bin": "bin/index.js",
   "scripts": {
     "start": "node bin",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/rot1024/scrapist.git"
   },
   "keywords": [
-    "cheerio",
-    "scrape"
+    "scraping"
   ],
   "author": "rot1024",
   "license": "MIT",
