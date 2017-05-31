@@ -25,7 +25,7 @@
     "node": ">=4"
   },
   "optionalDependencies": {
-    "cheerio-httpcli": "^0.6.8"
+    "cheerio-httpcli": "^0.7.0"
   },
   "devDependencies": {
     "eslint": "^3.9.1",
