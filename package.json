@@ -34,7 +34,7 @@
   "dependencies": {
     "co": "^4.6.0",
     "ramda": "^0.23.0",
-    "throat": "^3.0.0",
+    "throat": "^4.0.0",
     "yargs": "^8.0.1"
   }
 }
