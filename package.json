@@ -28,7 +28,7 @@
     "cheerio-httpcli": "^0.7.0"
   },
   "devDependencies": {
-    "eslint": "^3.9.1",
+    "eslint": "^4.6.0",
     "eslint-plugin-node": "^5.0.0"
   },
   "dependencies": {
